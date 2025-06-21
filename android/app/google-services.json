@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "42240461207",
+    "project_id": "fuel-form-tracking-47faa",
+    "storage_bucket": "fuel-form-tracking-47faa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:42240461207:android:8634ef3d88ebcfa50e9cd2",
+        "android_client_info": {
+          "package_name": "com.example.project_vehical_form"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7BCkoCll-F2PXQto9v-RUl5dw3G_iv2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
