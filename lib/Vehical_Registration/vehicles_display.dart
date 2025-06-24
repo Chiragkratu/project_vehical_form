@@ -5,8 +5,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import '../Custom_widgets/Custom_drawer.dart';
 import '../Custom_widgets/Logout_button.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
-
+import '../Providers/vehicle_provider.dart';
 
 Future<String?> getFirebaseToken() async {
   final storage = FlutterSecureStorage();
@@ -75,12 +76,12 @@ class _VehicalDisplayScreen extends State<Vehicle_Display> {
     'acquire_date',
     'retired_date',
   ];
-  
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
-  }
 
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   List<DataColumn> _buildColumns() {
     if (vehicles.isEmpty) return [];
@@ -314,11 +315,10 @@ class _VehicalDisplayScreen extends State<Vehicle_Display> {
       },
       body: jsonEncode(vehicles[index]),
     );
-    getVehicals();
+
     if (response.statusCode == 200) {
       _showMessage('Vehicle deleted succesfully');
-    }
-    else{
+    } else {
       _showMessage('error deleting vehicle ');
     }
   }
@@ -336,7 +336,8 @@ class _VehicalDisplayScreen extends State<Vehicle_Display> {
                 child: Text('Cancel'),
               ),
               TextButton(
-                onPressed: () => {Confirmdelete(index),Navigator.of(ctx).pop(false)},
+                onPressed:
+                    () => {Confirmdelete(index), Navigator.of(ctx).pop(false)},
                 child: Text('Delete', style: TextStyle(color: Colors.red)),
               ),
             ],
@@ -351,50 +352,14 @@ class _VehicalDisplayScreen extends State<Vehicle_Display> {
     }
   }
 
-  Future<void> getVehicals() async {
-    final token = await getFirebaseToken();
-
-    if (token == null) {
-      print("No Firebase token found");
-      return;
-    }
-    try {
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/vehicles'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode != 200) {
-        print("Failed to fetch vehicles: ${response.statusCode}");
-        return;
-      }
-
-      final vehicle = json.decode(response.body);
-      List<Map<String, dynamic>> list1 = [];
-      for (var item in vehicle) {
-        list1.add(item);
-      }
-
-      print("Vehicles fetched successfully: $list1");
-      setState(() {
-        vehicles = list1;
-      });
-    } catch (e) {
-      print("Error fetching vehicles: $e");
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    getVehicals();
   }
 
   @override
   Widget build(BuildContext context) {
+    vehicles = context.watch<VehicleProvider>().vehicles;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: themeColor,
@@ -420,9 +385,7 @@ class _VehicalDisplayScreen extends State<Vehicle_Display> {
         padding: const EdgeInsets.all(16.0),
         child:
             vehicles.isEmpty
-                ? Center(child: Text(
-                  'No Vehicles Registered'
-                ))
+                ? Center(child: Text('No Vehicles Registered'))
                 : SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: DataTable(

@@ -6,6 +6,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'Custom_widgets/Custom_drawer.dart';
 import 'Custom_widgets/Logout_button.dart';
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import './Providers/vehicle_provider.dart';
+import 'package:intl/intl.dart';
 
 Future<String?> getFirebaseToken() async {
   final storage = FlutterSecureStorage();
@@ -21,7 +24,8 @@ class _DashboardState extends State<Dashboard> {
   String? VehicleName;
   String? VehicleId;
   String? FuelType;
-  int? FuelAmountLiters;
+  double? FuelAmountLiters;
+  bool? offset;
   List<List<String>> vehicles = [];
 
   final List<String> _fuelOptions = [
@@ -35,6 +39,10 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
+    Future.microtask(
+      () =>
+          Provider.of<VehicleProvider>(context, listen: false).fetchVehicles(),
+    );
     getVehicals();
   }
 
@@ -55,6 +63,7 @@ class _DashboardState extends State<Dashboard> {
 
       if (response.statusCode != 200) {
         print("Failed to fetch vehicles: ${response.statusCode}");
+        Navigator.pushReplacementNamed(context, '/login');
         return;
       }
       print('yes');
@@ -85,6 +94,7 @@ class _DashboardState extends State<Dashboard> {
       print("No Firebase token found");
       return;
     }
+    DateTime today = DateTime.now();
     try {
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8000/api/addfuel'),
@@ -94,9 +104,10 @@ class _DashboardState extends State<Dashboard> {
         },
         body: json.encode({
           'vehicle_id': VehicleId,
-          'vehicle_name': VehicleName,
           'fuel_type': FuelType,
           'fuel_quantity': FuelAmountLiters,
+          'date': DateFormat('yyyy-MM-dd').format(today),
+          'offset': offset,
         }),
       );
 
@@ -115,7 +126,8 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = Color.fromARGB(255, 70, 118, 91); // SeaGreen
+    final themeColor = Color.fromARGB(255, 70, 118, 91);
+    // SeaGreen
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -235,8 +247,9 @@ class _DashboardState extends State<Dashboard> {
                   ),
                   keyboardType: TextInputType.number,
                   onChanged:
-                      (val) =>
-                          setState(() => FuelAmountLiters = int.tryParse(val)),
+                      (val) => setState(
+                        () => FuelAmountLiters = double.tryParse(val),
+                      ),
                 ),
 
                 SizedBox(height: 24),
@@ -258,6 +271,39 @@ class _DashboardState extends State<Dashboard> {
                         SnackBar(content: Text('Please fill all fields')),
                       );
                     } else {
+                      offset = true;
+                      Navigator.pushReplacementNamed(context, '/offset');
+                      submitFueldata();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeColor,
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 24),
+                ElevatedButton.icon(
+                  icon: Icon(Icons.send, color: Colors.white),
+                  label: Text(
+                    'Offset Later',
+                    style: TextStyle(
+                      fontFamily: 'TimesNewRoman',
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () {
+                    if (VehicleName == null ||
+                        FuelType == null ||
+                        FuelAmountLiters == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please fill all fields')),
+                      );
+                    } else {
+                      offset = false;
+                      Navigator.pushReplacementNamed(context, '/offset');
                       submitFueldata();
                     }
                   },

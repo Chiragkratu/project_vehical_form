@@ -35,7 +35,7 @@ class CustomDrawer extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.analytics),
             title: Text('Analytics'),
-            onTap: () => Navigator.pop(context), // Update if needed
+            onTap: () => Navigator.pushReplacementNamed(context, '/analytics'), 
           ),
           ListTile(
             leading: Icon(Icons.history),
